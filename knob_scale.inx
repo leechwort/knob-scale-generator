@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <_name>Knob Scale</_name>
+    <id>math.triangle</id>
+    <dependency type="executable" location="extensions">knob_scale.py</dependency>
+    <dependency type="executable" location="extensions">inkex.py</dependency>
+    <param name="tab" type="notebook">
+        <page name="general_settings" gui-text="General">
+            <param name="radius" type="int"   min="10" max="10000" _gui-text="Size of knob in px:">100</param>
+            <param name="angle" type="float"   min="90.0" max="360.0" _gui-text="Angle">300</param>
+            <param name="linewidth" type="int"   min="1" max="100" _gui-text="Line width">1</param>
+        </page>        
+        
+        <page name="ticks_settings" gui-text="Marks">
+            <param name="n_ticks" type="int"   min="2" max="100" _gui-text="Number of tick marks:">2</param>
+            <param name="n_subticks" type="int"   min="0" max="100" _gui-text="Number of subticks:">1</param>
+            <param name="style" type="enum" gui-text="Scale style">
+                <item value="1">Marks inwards</item>
+                <item value="2">Marks outwards</item>
+            </param>
+        </page>
+        <page name="labels_settings" gui-text="Labels">
+            <param name="labels_enabled" type="boolean" gui-text="Enable labels">false</param>
+            <param name="text_size" type="int" min="1" max="100" _gui-text="Labels size">10</param>
+        </page>
+    </param>
+    
+    <effect>
+        <object-type>all</object-type>
+        <effects-menu>
+            <submenu _name="Knob Scale"/>
+        </effects-menu>
+    </effect>
+    <script>
+        <command reldir="extensions" interpreter="python">knob_scale.py</command>
+    </script>
+</inkscape-extension>
