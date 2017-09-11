@@ -9,19 +9,27 @@
             <param name="radius" type="int"   min="10" max="10000" _gui-text="Size of knob in px:">100</param>
             <param name="angle" type="float"   min="90.0" max="360.0" _gui-text="Angle">300</param>
             <param name="linewidth" type="int"   min="1" max="100" _gui-text="Line width">1</param>
+            <param name="draw_arc" type="boolean" gui-text="Draw Arc">true</param>
         </page>        
         
         <page name="ticks_settings" gui-text="Marks">
             <param name="n_ticks" type="int"   min="2" max="100" _gui-text="Number of tick marks:">2</param>
+            <param name="ticksize" type="int"   min="1" max="1000" _gui-text="Tick size: ">10</param>
             <param name="n_subticks" type="int"   min="0" max="100" _gui-text="Number of subticks:">1</param>
+            <param name="subticksize" type="int"   min="1" max="1000" _gui-text="Subtick size: ">5</param>
             <param name="style" type="enum" gui-text="Scale style">
-                <item value="1">Marks inwards</item>
-                <item value="2">Marks outwards</item>
+                <item value="marks_inwards">Marks inwards</item>
+                <item value="marks_outwards">Marks outwards</item>
+                <item value="marks_circles">Dots</item>
             </param>
         </page>
         <page name="labels_settings" gui-text="Labels">
             <param name="labels_enabled" type="boolean" gui-text="Enable labels">false</param>
+            <param name="rounding_level" type="int" min="0" max="100" _gui-text="Rounding Float to">0</param>
             <param name="text_size" type="int" min="1" max="100" _gui-text="Labels size">10</param>
+            <param name="text_offset" type="int" min="-1000" max="1000" _gui-text="Offset">20</param>
+            <param name="start_value" type="float"   min="-10000" max="10000" _gui-text="Start Value">0</param>
+            <param name="stop_value" type="float"   min="-10000" max="10000" _gui-text="Stop Value">10</param>
         </page>
     </param>
     
