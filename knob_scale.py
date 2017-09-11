@@ -2,6 +2,8 @@
 '''
 Copyright (C) 2017 Artem Synytsyn a.synytsyn@gmail.com
 
+#TODO: Code cleaning and refactoring
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -270,17 +272,18 @@ class Knob_Scale(inkex.Effect):
             self.draw_tick(radius, start_ticks_angle + ticks_delta*tick, 
                                 tick_length, parent)        
             
-            if self.options.rounding_level > 0:
-                tick_text = str(round(start_num + 
-                                      float(tick) * (end_num - start_num) / n_ticks, 
-                                      self.options.rounding_level))
-            else:
-                tick_text = str(int(start_num + float(tick) * (end_num - start_num) / n_ticks))
-                
-            draw_text(tick_text, radius + tick_length + text_spacing, 
-                      start_ticks_angle + ticks_delta*tick, 
-                      text_size,
-                      parent)
+            if self.options.labels_enabled:                
+                if self.options.rounding_level > 0:
+                    tick_text = str(round(start_num + 
+                                          float(tick) * (end_num - start_num) / n_ticks, 
+                                          self.options.rounding_level))
+                else:
+                    tick_text = str(int(start_num + float(tick) * (end_num - start_num) / n_ticks))
+                    
+                draw_text(tick_text, radius + tick_length + text_spacing, 
+                          start_ticks_angle + ticks_delta*tick, 
+                          text_size,
+                          parent)
             
             if tick == (n_ticks - 1):
                 break
