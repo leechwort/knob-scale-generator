@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import inkex
 import simplestyle, sys
-from simpletransform import computePointInNode
 from math import *
 # The simplestyle module provides functions for style parsing.
 from simplestyle import *
@@ -236,7 +235,6 @@ class Knob_Scale(inkex.Effect):
     def effect(self):
         
         parent = self.current_layer
-        offset = computePointInNode(list(self.view_center), self.current_layer) #the offset require to centre the triangle
         self.options.radius = self.unittouu(str(self.options.radius) + 'px')
         
         radius = self.options.radius
