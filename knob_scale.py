@@ -25,87 +25,25 @@ from math import *
 # The simplestyle module provides functions for style parsing.
 from simplestyle import *
 
-#SVG element generation routine
-def draw_SVG_square((w,h), (x,y), parent):
 
-    style = {   'stroke'        : 'none',
-                'stroke-width'  : '1',
-                'fill'          : '#000000'
-            }
-                
-    attribs = {
-        'style'     : simplestyle.formatStyle(style),
-        'height'    : str(h),
-        'width'     : str(w),
-        'x'         : str(x),
-        'y'         : str(y)
-        }
-    circ = inkex.etree.SubElement(parent, inkex.addNS('rect','svg'), attribs )
-
-
-def draw_SVG_circle(r, cx, cy, width, fill, parent):
     
-    style = { 'stroke': '#000000', 'stroke-width':str(width), 'fill': fill }
-    circ_attribs = {
-            'style':simplestyle.formatStyle(style),
-            'cx':str(cx),
-            'cy':str(cy),
-            'r':str(r)
-            }
-    circle = inkex.etree.SubElement(parent, inkex.addNS('circle','svg'), circ_attribs )
-
-
-
-def draw_text(textvalue, radius, angular_position, text_size, parent):
-    # Create text element
-    text = inkex.etree.Element(inkex.addNS('text','svg'))
-    text.text = textvalue
-    
-    # Set text position to center of document.
-    text.set('x', str(radius*cos(angular_position)))
-    text.set('y', str(radius*sin(angular_position) + text_size/2))
-
-    # Center text horizontally with CSS style.
-    style = {
-            'text-align' : 'center',
-             'text-anchor': 'middle',
-             'alignment-baseline' : 'center',
-             'font-size' : str(text_size) + 'px',
-             'vertical-align' : 'middle'
-             }
-    
-    text.set('style', formatStyle(style))
-    parent.append(text)
-    
-
-
-def draw_SVG_ellipse((rx, ry), (cx, cy), parent, start_end=(0.5*pi,pi), transform='' ):
-
-    style = {   'stroke'        : '#000000',
-                'stroke-width'  : '1',
-                'fill'          : 'none'            }
-    ell_attribs = {'style':simplestyle.formatStyle(style),
-        inkex.addNS('cx','sodipodi')        :str(cx),
-        inkex.addNS('cy','sodipodi')        :str(cy),
-        inkex.addNS('rx','sodipodi')        :str(rx),
-        inkex.addNS('ry','sodipodi')        :str(ry),
-        inkex.addNS('start','sodipodi')     :str(start_end[0]),
-        inkex.addNS('end','sodipodi')       :str(start_end[1]),
-        inkex.addNS('open','sodipodi')      :'true',    #all ellipse sectors we will draw are open
-        inkex.addNS('type','sodipodi')      :'arc',
-        'transform'                         :transform
-        
-            }
-    ell = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), ell_attribs )
 
 class Knob_Scale(inkex.Effect):
     def __init__(self):
         inkex.Effect.__init__(self)
         # General settings
+        self.OptionParser.add_option("--x",
+                        action="store", type="int", 
+                        dest="x", default=0.0,
+                        help="Center X")
+        self.OptionParser.add_option("--y",
+                        action="store", type="int", 
+                        dest="y", default=0.0,
+                        help="Center Y")
         self.OptionParser.add_option("--radius",
                         action="store", type="int", 
                         dest="radius", default=100.0,
-                        help="Radius of the knob in px")
+                        help="Knob radius")
         self.OptionParser.add_option("--linewidth",
                         action="store", type="int", 
                         dest="linewidth", default=1,
@@ -118,6 +56,10 @@ class Knob_Scale(inkex.Effect):
                         action="store", type="inkbool",
                         dest="draw_arc", default='True',
                         help="")
+        self.OptionParser.add_option("-u", "--units",
+                        action="store", type="string",
+                        dest="units", default="px",
+                        help="units to measure size of knob")
         # Tick settings
         self.OptionParser.add_option("--n_ticks",
                         action="store", type="int", 
@@ -139,6 +81,7 @@ class Knob_Scale(inkex.Effect):
                         action="store", type="string", 
                         dest="style", default='marks_outwards',
                         help="Style of marks")
+
         # Label settings
         self.OptionParser.add_option("--labels_enabled", 
                         action="store", type="inkbool",
@@ -167,7 +110,27 @@ class Knob_Scale(inkex.Effect):
         # Dummy
         self.OptionParser.add_option("","--tab")
 
-    def draw_knob_arc(self, radius, (cx, cy), parent, angle, transform='' ):
+    def draw_text(self, textvalue, radius, angular_position, text_size, parent):
+        # Create text element
+        text = inkex.etree.Element(inkex.addNS('text','svg'))
+        text.text = textvalue
+        
+        # Set text position to center of document.
+        text.set('x', str(self.x_offset + radius*cos(angular_position)))
+        text.set('y', str(self.y_offset + radius*sin(angular_position) + text_size/2))
+    
+        # Center text horizontally with CSS style.
+        style = {
+                'text-align' : 'center',
+                 'text-anchor': 'middle',
+                 'alignment-baseline' : 'center',
+                 'font-size' : str(text_size),
+                 'vertical-align' : 'middle'
+                 }
+        
+        text.set('style', formatStyle(style))
+        parent.append(text)
+    def draw_knob_arc(self, radius, parent, angle, transform='' ):
 
         start_point_angle = (angle - pi)/2.0
         end_point_angle = pi - start_point_angle
@@ -176,8 +139,8 @@ class Knob_Scale(inkex.Effect):
                     'stroke-width'  : str(self.options.linewidth),
                     'fill'          : 'none'            }
         ell_attribs = {'style':simplestyle.formatStyle(style),
-            inkex.addNS('cx','sodipodi')        :str(cx),
-            inkex.addNS('cy','sodipodi')        :str(cy),
+            inkex.addNS('cx','sodipodi')        :str(self.x_offset),
+            inkex.addNS('cy','sodipodi')        :str(self.y_offset),
             inkex.addNS('rx','sodipodi')        :str(radius),
             inkex.addNS('ry','sodipodi')        :str(radius),
             inkex.addNS('start','sodipodi')     :str(end_point_angle),
@@ -189,10 +152,10 @@ class Knob_Scale(inkex.Effect):
                 }
         ell = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), ell_attribs )    
     
-    def draw_circle_mark(self, radius, mark_angle, mark_length, parent):    
+    def draw_circle_mark(self, x_offset, y_offset, radius, mark_angle, mark_length, parent):    
         
-        cx = radius*cos(mark_angle)
-        cy = radius*sin(mark_angle)
+        cx = x_offset + radius*cos(mark_angle)
+        cy = y_offset + radius*sin(mark_angle)
         r = mark_length / 2.0
         
         style = { 
@@ -205,15 +168,15 @@ class Knob_Scale(inkex.Effect):
                 'style':simplestyle.formatStyle(style),
                 'cx':str(cx),
                 'cy':str(cy),
-                'r':str(r)
+                'r':str(r) 
                 }
         circle = inkex.etree.SubElement(parent, inkex.addNS('circle','svg'), circ_attribs )
         
-    def draw_knob_line_mark(self, radius, mark_angle, mark_length, parent):    
-        x1 = radius*cos(mark_angle)
-        y1 = radius*sin(mark_angle)
-        x2 = (radius + mark_length)*cos(mark_angle)
-        y2 = (radius + mark_length)*sin(mark_angle)
+    def draw_knob_line_mark(self, x_offset, y_offset, radius, mark_angle, mark_length, parent):    
+        x1 = x_offset + radius*cos(mark_angle)
+        y1 = y_offset + radius*sin(mark_angle)
+        x2 = x_offset + (radius + mark_length)*cos(mark_angle)
+        y2 = y_offset + (radius + mark_length)*sin(mark_angle)
         
         line_style   = { 'stroke': '#000000',
                          'stroke-width': str(self.options.linewidth),
@@ -222,22 +185,27 @@ class Knob_Scale(inkex.Effect):
     
         line_attribs = {'style' : simplestyle.formatStyle(line_style),
                         inkex.addNS('label','inkscape') : "none",
-                        'd' : 'M '+str(x1)+','+str(y1)+' L '+str(x2)+','+str(y2)}
+                        'd' : 'M '+str(x1) +',' + 
+                        str(y1) +' L '+str(x2) 
+                        +','+str(y2) }
     
         line = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), line_attribs )
     
     def draw_tick(self, radius, mark_angle, mark_size, parent):
         if (self.options.style == 'marks_inwards') or (self.options.style == 'marks_outwards'):
-            self.draw_knob_line_mark(radius, mark_angle, mark_size, parent)
+            self.draw_knob_line_mark(self.x_offset, self.y_offset, radius, mark_angle, mark_size, parent)
         elif self.options.style == 'marks_circles':
-            self.draw_circle_mark(radius, mark_angle, mark_size, parent)
+            self.draw_circle_mark(self.x_offset, self.y_offset, radius, mark_angle, mark_size, parent)
     
     def effect(self):
         
         parent = self.current_layer
-        self.options.radius = self.unittouu(str(self.options.radius) + 'px')
-        
-        radius = self.options.radius
+        radius = self.unittouu(str(self.options.radius) + self.options.units)
+        self.x_offset = self.unittouu(str(self.options.x) + self.options.units)
+        self.y_offset = self.unittouu(str(self.options.y) + self.options.units)
+        #print >>sys.stderr, "x_offset: %s\n"        % x_offset
+        #print >>sys.stderr, "y_offset: %s\n"        % y_offset
+        #radius = self.options.radius
         angle = self.options.angle*pi/180.0
         n_ticks = self.options.n_ticks
         n_subticks = self.options.n_subticks
@@ -245,24 +213,26 @@ class Knob_Scale(inkex.Effect):
         if self.options.style == 'marks_inwards':
             is_outer = False
 
-        tick_length = self.options.ticksize
-        subtick_length = self.options.subticksize
-        subtick_radius = radius
+        tick_length = self.unittouu(str(self.options.ticksize) + self.options.units)
+        subtick_length = self.unittouu(str(self.options.subticksize) + self.options.units)
         arc_radius = radius
         
         
         # Labeling settings
         start_num = self.options.start_value
         end_num = self.options.stop_value
-        text_spacing = self.options.text_offset
-        text_size = self.options.text_size
+        text_spacing = self.unittouu(str(self.options.text_offset) + self.options.units)
+        text_size = self.unittouu(str(self.options.text_size) + self.options.units)
 
         if not is_outer:
             subtick_radius = radius + tick_length - subtick_length
             arc_radius = radius + tick_length
-        
+        else:
+            subtick_radius = radius
+            arc_radius = radius
+            
         if self.options.draw_arc:
-            self.draw_knob_arc(arc_radius, (0, 0), parent, angle)
+            self.draw_knob_arc(arc_radius, parent, angle)
         
         ticks_delta = angle / (n_ticks - 1)
         start_ticks_angle = 1.5*pi - 0.5*angle
@@ -273,12 +243,12 @@ class Knob_Scale(inkex.Effect):
             if self.options.labels_enabled:                
                 if self.options.rounding_level > 0:
                     tick_text = str(round(start_num + 
-                                          float(tick) * (end_num - start_num) / n_ticks, 
+                                          float(tick) * (end_num - start_num) / (n_ticks - 1), 
                                           self.options.rounding_level))
                 else:
-                    tick_text = str(int(start_num + float(tick) * (end_num - start_num) / n_ticks))
+                    tick_text = str(int(start_num + float(tick) * (end_num - start_num) / (n_ticks - 1)))
                     
-                draw_text(tick_text, radius + tick_length + text_spacing, 
+                self.draw_text(tick_text, radius + tick_length + text_spacing, 
                           start_ticks_angle + ticks_delta*tick, 
                           text_size,
                           parent)
@@ -291,10 +261,7 @@ class Knob_Scale(inkex.Effect):
             for subtick in range(n_subticks):
                 self.draw_tick(subtick_radius, subtick_start_angle + subticks_delta*subtick, 
                                     subtick_length, parent)
-        
-        
-        
-        
+             
         
 
 if __name__ == '__main__':
