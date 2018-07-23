@@ -56,6 +56,10 @@ class Knob_Scale(inkex.Effect):
                         action="store", type="inkbool",
                         dest="draw_arc", default='True',
                         help="")
+        self.OptionParser.add_option("--draw_centering_circle", 
+                        action="store", type="inkbool",
+                        dest="draw_centering_circle", default='False',
+                        help="")
         self.OptionParser.add_option("-u", "--units",
                         action="store", type="string",
                         dest="units", default="px",
@@ -152,6 +156,20 @@ class Knob_Scale(inkex.Effect):
                 }
         ell = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), ell_attribs )    
     
+    def draw_centering_circle(self, radius, parent):
+        
+        style = {   'stroke'        : '#000000',
+                    'stroke-width'  : '1',
+                    'fill'          : 'none'            }
+        ell_attribs = {'style':simplestyle.formatStyle(style),
+            inkex.addNS('cx','sodipodi')        :str(self.x_offset),
+            inkex.addNS('cy','sodipodi')        :str(self.y_offset),
+            inkex.addNS('rx','sodipodi')        :str(radius),
+            inkex.addNS('ry','sodipodi')        :str(radius),
+            inkex.addNS('type','sodipodi')      :'arc'            
+            }
+        ell = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), ell_attribs )    
+    
     def draw_circle_mark(self, x_offset, y_offset, radius, mark_angle, mark_length, parent):    
         
         cx = x_offset + radius*cos(mark_angle)
@@ -234,6 +252,9 @@ class Knob_Scale(inkex.Effect):
         if self.options.draw_arc:
             self.draw_knob_arc(arc_radius, parent, angle)
         
+        if self.options.draw_centering_circle:
+            self.draw_centering_circle(arc_radius + tick_length + text_size + text_spacing, parent)
+            
         ticks_delta = angle / (n_ticks - 1)
         start_ticks_angle = 1.5*pi - 0.5*angle
         for tick in range(n_ticks):            

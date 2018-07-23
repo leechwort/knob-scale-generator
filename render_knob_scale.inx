@@ -12,6 +12,7 @@
             <param name="angle" type="float"   min="90.0" max="360.0" _gui-text="Angle">300</param>
             <param name="linewidth" type="int"   min="1" max="100" _gui-text="Line width">1</param>
             <param name="draw_arc" type="boolean" gui-text="Draw Arc">true</param>
+            <param name="draw_centering_circle" type="boolean" gui-text="Draw Centering Circle">false</param>
             <param name="units" type="enum" gui-text="Units">
                 <item value="px">px</item>
                 <item value="mm">mm</item>
