@@ -42,7 +42,7 @@
     <effect>
         <object-type>all</object-type>
         <effects-menu>
-            <submenu _name="Knob Scale"/>
+            <submenu _name="Render"/>
         </effects-menu>
     </effect>
     <script>
