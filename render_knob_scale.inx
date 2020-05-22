@@ -5,11 +5,11 @@
     <dependency type="executable" location="inx">render_knob_scale.py</dependency>
     <param name="tab" type="notebook">
         <page name="general_settings" gui-text="General">
-            <param name="x" type="int"   min="-1000" max="10000" gui-text="Center X:">0</param>
-            <param name="y" type="int"   min="-1000" max="10000" gui-text="Center Y:">0</param>
-            <param name="radius" type="int"   min="10" max="10000" gui-text="Knob size:">100</param>
-            <param name="angle" type="float"   min="90.0" max="360.0" gui-text="Angle">300</param>
-            <param name="linewidth" type="int"   min="1" max="100" gui-text="Line width">1</param>
+            <param name="x" type="float"   min="-1000" max="10000" precision="3" gui-text="Center X:">0</param>
+            <param name="y" type="float"   min="-1000" max="10000" precision="3" gui-text="Center Y:">0</param>
+            <param name="radius" type="float"   min="0.001" max="10000" precision="3" gui-text="Knob radius:">100</param>
+            <param name="angle" type="float"   min="90.0" max="360.0" precision="3" gui-text="Angle">300</param>
+            <param name="linewidth" type="float"   min="0.001" max="100" precision="3" gui-text="Line width">1</param>
             <param name="draw_arc" type="bool" gui-text="Draw Arc">true</param>
             <param name="draw_centering_circle" type="bool" gui-text="Draw Centering Circle">false</param>
             <param name="units" type="optiongroup" gui-text="Units" appearance="combo">
@@ -20,9 +20,9 @@
 
         <page name="ticks_settings" gui-text="Marks">
             <param name="n_ticks" type="int"   min="2" max="100" gui-text="Number of tick marks:">2</param>
-            <param name="ticksize" type="int"   min="1" max="1000" gui-text="Tick size: ">10</param>
+            <param name="ticksize" type="float"   min="0.001" max="1000" precision="3" gui-text="Tick size: ">10</param>
             <param name="n_subticks" type="int"   min="0" max="100" gui-text="Number of subticks:">1</param>
-            <param name="subticksize" type="int"   min="1" max="1000" gui-text="Subtick size: ">5</param>
+            <param name="subticksize" type="float"   min="0.001" max="1000" precision="3" gui-text="Subtick size: ">5</param>
             <param name="style" type="optiongroup" gui-text="Scale style" appearance="combo">
                 <item value="marks_inwards">Marks inwards</item>
                 <item value="marks_outwards">Marks outwards</item>
@@ -32,10 +32,10 @@
         <page name="labels_settings" gui-text="Labels">
             <param name="labels_enabled" type="bool" gui-text="Enable labels">false</param>
             <param name="rounding_level" type="int" min="0" max="100" gui-text="Rounding Float to">0</param>
-            <param name="text_size" type="int" min="1" max="100" gui-text="Labels size">10</param>
-            <param name="text_offset" type="int" min="-1000" max="1000" gui-text="Offset">20</param>
-            <param name="start_value" type="float"   min="-10000" max="10000" gui-text="Start Value">0</param>
-            <param name="stop_value" type="float"   min="-10000" max="10000" gui-text="Stop Value">10</param>
+            <param name="text_size" type="float" min="0.001" max="1000" precision="3" gui-text="Labels size">10</param>
+            <param name="text_offset" type="float" min="-1000" max="1000" precision="3" gui-text="Offset">20</param>
+            <param name="start_value" type="float"   min="-10000" max="10000" precision="3" gui-text="Start Value">0</param>
+            <param name="stop_value" type="float"   min="-10000" max="10000" precision="3" gui-text="Stop Value">10</param>
         </page>
     </param>
 
