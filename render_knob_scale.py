@@ -29,19 +29,19 @@ class Knob_Scale(inkex.Effect):
         inkex.Effect.__init__(self)
         # General settings
         self.arg_parser.add_argument("--x",
-                        type=int,
+                        type=float,
                         dest="x", default=0.0,
                         help="Center X")
         self.arg_parser.add_argument("--y",
-                        type=int,
+                        type=float,
                         dest="y", default=0.0,
                         help="Center Y")
         self.arg_parser.add_argument("--radius",
-                        type=int,
+                        type=float,
                         dest="radius", default=100.0,
                         help="Knob radius")
         self.arg_parser.add_argument("--linewidth",
-                        type=int,
+                        type=float,
                         dest="linewidth", default=1,
                         help="")
         self.arg_parser.add_argument("--angle",
@@ -66,7 +66,7 @@ class Knob_Scale(inkex.Effect):
                         dest="n_ticks", default=5,
                         help="")
         self.arg_parser.add_argument("--ticksize",
-                        type=int,
+                        type=float,
                         dest="ticksize", default=10,
                         help="")
         self.arg_parser.add_argument("--n_subticks",
@@ -74,7 +74,7 @@ class Knob_Scale(inkex.Effect):
                         dest="n_subticks", default=10,
                         help="")
         self.arg_parser.add_argument("--subticksize",
-                        type=int,
+                        type=float,
                         dest="subticksize", default=5,
                         help="")
         self.arg_parser.add_argument("--style",
@@ -92,11 +92,11 @@ class Knob_Scale(inkex.Effect):
                         dest="rounding_level", default=0,
                         help="")
         self.arg_parser.add_argument("--text_size",
-                        type=int,
+                        type=float,
                         dest="text_size", default=1,
                         help="")
         self.arg_parser.add_argument("--text_offset",
-                        type=int,
+                        type=float,
                         dest="text_offset", default=20,
                         help="")
         self.arg_parser.add_argument("--start_value",
