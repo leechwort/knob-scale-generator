@@ -123,7 +123,7 @@ class Knob_Scale(inkex.Effect):
         style = {
                 'text-align' : 'center',
                  'text-anchor': 'middle',
-                 'alignment-baseline' : 'center',
+                 'alignment-baseline' : 'central',
                  'font-size' : str(text_size),
                  'vertical-align' : 'middle'
                  }
