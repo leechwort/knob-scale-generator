@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-    <name>Knob Scale</_name>
+    <name>Knob Scale</name>
     <id>com.knob_scale</id>
     <dependency type="executable" location="inx">render_knob_scale.py</dependency>
     <param name="tab" type="notebook">
