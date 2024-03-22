@@ -211,18 +211,48 @@ class Knob_Scale(inkex.Effect):
         elif self.options.style == 'marks_circles':
             self.draw_circle_mark(self.x_offset, self.y_offset, radius, mark_angle, mark_size, parent)
 
+    def get_tick_angles(self):
+        angle = radians(self.options.angle)
+        n_ticks = self.options.n_ticks
+        ticks_delta = angle / (n_ticks - 1)
+        start_angle = 1.5*pi - 0.5*angle
+        return [start_angle + ticks_delta * i for i in range(n_ticks)]
+
+    def get_tick_labels(self):
+        start_num = self.options.start_value
+        end_num = self.options.stop_value
+        n_ticks = self.options.n_ticks
+        rounding_level = self.options.rounding_level
+        if rounding_level <= 0:
+            rounding_level = None
+
+        labels = []
+        label_delta = (end_num - start_num) / (n_ticks - 1)
+        for tick in range(n_ticks):
+            num = start_num + tick * label_delta
+            tick_text = str(round(num, rounding_level))
+            labels.append(tick_text)
+        return labels
+
+    def get_subtick_angles(self):
+        angle = radians(self.options.angle)
+        n_ticks = self.options.n_ticks
+        n_subticks = self.options.n_subticks
+        ticks_delta = angle / (n_ticks - 1)
+        subticks_delta = ticks_delta / (n_subticks + 1)
+        subtick_angles = []
+        for tick_angle in self.get_tick_angles()[:-1]:
+            for subtick in range(n_subticks):
+                subtick_angles.append(tick_angle + subticks_delta * (subtick + 1))
+        return subtick_angles
+
     def effect(self):
 
         parent = self.svg.get_current_layer()
         radius = self.svg.unittouu(str(self.options.radius) + self.options.units)
         self.x_offset = self.svg.unittouu(str(self.options.x) + self.options.units)
         self.y_offset = self.svg.unittouu(str(self.options.y) + self.options.units)
-        #print >>sys.stderr, "x_offset: %s\n"        % x_offset
-        #print >>sys.stderr, "y_offset: %s\n"        % y_offset
-        #radius = self.options.radius
         angle = self.options.angle*pi/180.0
-        n_ticks = self.options.n_ticks
-        n_subticks = self.options.n_subticks
         is_outer = True
         if self.options.style == 'marks_inwards':
             is_outer = False
@@ -231,10 +261,7 @@ class Knob_Scale(inkex.Effect):
         subtick_length = self.svg.unittouu(str(self.options.subticksize) + self.options.units)
         arc_radius = radius
 
-
         # Labeling settings
-        start_num = self.options.start_value
-        end_num = self.options.stop_value
         text_spacing = self.svg.unittouu(str(self.options.text_offset) + self.options.units)
         text_size = self.svg.unittouu(str(self.options.text_size) + self.options.units)
 
@@ -251,35 +278,20 @@ class Knob_Scale(inkex.Effect):
         if self.options.draw_centering_circle:
             self.draw_centering_circle(arc_radius + tick_length + text_size + text_spacing, parent)
 
-        ticks_delta = angle / (n_ticks - 1)
-        start_ticks_angle = 1.5*pi - 0.5*angle
-        for tick in range(n_ticks):
-            self.draw_tick(radius, start_ticks_angle + ticks_delta*tick,
-                                tick_length, parent)
+        # Draw main ticks        
+        tick_angles = self.get_tick_angles()
+        for angle in tick_angles:
+            self.draw_tick(radius, angle, tick_length, parent)
 
-            if self.options.labels_enabled:
-                if self.options.rounding_level > 0:
-                    tick_text = str(round(start_num +
-                                          float(tick) * (end_num - start_num) / (n_ticks - 1),
-                                          self.options.rounding_level))
-                else:
-                    tick_text = str(int(start_num + float(tick) * (end_num - start_num) / (n_ticks - 1)))
+        if self.options.labels_enabled:
+            labels = self.get_tick_labels()
+            label_radius = radius + tick_length + text_spacing
+            for angle, label in zip(tick_angles, labels):
+                self.draw_text(label, label_radius, angle, text_size, parent)
 
-                self.draw_text(tick_text, radius + tick_length + text_spacing,
-                          start_ticks_angle + ticks_delta*tick,
-                          text_size,
-                          parent)
-
-            if tick == (n_ticks - 1):
-                break
-
-            subticks_delta = ticks_delta / (n_subticks + 1)
-            subtick_start_angle = start_ticks_angle + ticks_delta*tick + subticks_delta
-            for subtick in range(n_subticks):
-                self.draw_tick(subtick_radius, subtick_start_angle + subticks_delta*subtick,
-                                    subtick_length, parent)
-
-
+        # Draw subticks
+        for angle in self.get_subtick_angles():
+            self.draw_tick(subtick_radius, angle, subtick_length, parent)
 
 if __name__ == '__main__':
     e = Knob_Scale()
