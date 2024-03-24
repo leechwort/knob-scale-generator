@@ -81,6 +81,18 @@ class Knob_Scale(inkex.Effect):
                         type=str,
                         dest="style", default='marks_outwards',
                         help="Style of marks")
+        self.arg_parser.add_argument("--logarithmic_ticks",
+                        type=inkex.Boolean,
+                        dest="logarithmic_ticks",
+                        default="False",
+                        help="Whether to space ticks according to a log scale.")
+        self.arg_parser.add_argument("--logarithmic_subticks",
+                        type=inkex.Boolean,
+                        dest="logarithmic_subticks",
+                        default="False",
+                        help="Whether to space ticks according to a log scale. " \
+                             "Using this without the log-scale ticks will make " \
+                             "an exponential scale.")
 
         # Label settings
         self.arg_parser.add_argument("--labels_enabled",
@@ -212,11 +224,22 @@ class Knob_Scale(inkex.Effect):
             self.draw_circle_mark(self.x_offset, self.y_offset, radius, mark_angle, mark_size, parent)
 
     def get_tick_angles(self):
-        angle = radians(self.options.angle)
         n_ticks = self.options.n_ticks
-        ticks_delta = angle / (n_ticks - 1)
+        if n_ticks <= 0:
+            return []
+        
+        angle = radians(self.options.angle)
         start_angle = 1.5*pi - 0.5*angle
-        return [start_angle + ticks_delta * i for i in range(n_ticks)]
+
+        if self.options.logarithmic_ticks:
+            tick_angles = []
+            for i in range(n_ticks):
+                tick_angle = start_angle + angle*log(i+1)/log(n_ticks)
+                tick_angles.append(tick_angle)
+            return tick_angles
+        else:
+            ticks_delta = angle / (n_ticks - 1)
+            return [start_angle + ticks_delta * i for i in range(n_ticks)]
 
     def get_tick_labels(self):
         start_num = self.options.start_value
@@ -235,15 +258,32 @@ class Knob_Scale(inkex.Effect):
         return labels
 
     def get_subtick_angles(self):
-        angle = radians(self.options.angle)
+        if self.options.n_ticks < 2:
+            return []
+        
         n_ticks = self.options.n_ticks
         n_subticks = self.options.n_subticks
-        ticks_delta = angle / (n_ticks - 1)
-        subticks_delta = ticks_delta / (n_subticks + 1)
+        angle = radians(self.options.angle)
+        start_angle = 1.5*pi - 0.5*angle
+        
         subtick_angles = []
-        for tick_angle in self.get_tick_angles()[:-1]:
-            for subtick in range(n_subticks):
-                subtick_angles.append(tick_angle + subticks_delta * (subtick + 1))
+        tick_angles = self.get_tick_angles()
+        for tick, cur_tick_angle in enumerate(tick_angles[:-1]):
+            next_tick_angle = tick_angles[tick+1]
+            tick_delta = next_tick_angle - cur_tick_angle
+            if self.options.logarithmic_ticks:
+                for i in range(n_subticks):
+                    fraction = (i+1) / (n_subticks+1) + tick
+                    fraction = log(fraction+1) / log(n_ticks)
+                    subtick_angles.append(start_angle + angle * fraction)
+            elif self.options.logarithmic_subticks:
+                for i in range(n_subticks):
+                    fraction = log(i+2) / log(n_subticks+2)
+                    subtick_angles.append(cur_tick_angle + tick_delta * fraction)
+            else: # linear
+                for i in range(n_subticks):
+                    fraction = (i + 1) / (n_subticks + 1)
+                    subtick_angles.append(cur_tick_angle + tick_delta * fraction)
         return subtick_angles
 
     def effect(self):
@@ -280,8 +320,12 @@ class Knob_Scale(inkex.Effect):
 
         # Draw main ticks        
         tick_angles = self.get_tick_angles()
-        for angle in tick_angles:
-            self.draw_tick(radius, angle, tick_length, parent)
+        for tick_angle in tick_angles:
+            self.draw_tick(radius, tick_angle, tick_length, parent)
+
+        # Draw subticks
+        for subtick_angle in self.get_subtick_angles():
+            self.draw_tick(subtick_radius, subtick_angle, subtick_length, parent)
 
         if self.options.labels_enabled:
             labels = self.get_tick_labels()
@@ -289,9 +333,6 @@ class Knob_Scale(inkex.Effect):
             for angle, label in zip(tick_angles, labels):
                 self.draw_text(label, label_radius, angle, text_size, parent)
 
-        # Draw subticks
-        for angle in self.get_subtick_angles():
-            self.draw_tick(subtick_radius, angle, subtick_length, parent)
 
 if __name__ == '__main__':
     e = Knob_Scale()
