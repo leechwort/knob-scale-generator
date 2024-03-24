@@ -28,6 +28,8 @@
                 <item value="marks_outwards">Marks outwards</item>
                 <item value="marks_circles">Dots</item>
             </param>
+            <param name="logarithmic_ticks" type="bool" gui-text="Logarithmic ticks">false</param>
+            <param name="logarithmic_subticks" type="bool" gui-text="Logarithmic subticks">false</param>
         </page>
         <page name="labels_settings" gui-text="Labels">
             <param name="labels_enabled" type="bool" gui-text="Enable labels">false</param>

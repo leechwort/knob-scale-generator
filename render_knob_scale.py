@@ -81,6 +81,18 @@ class Knob_Scale(inkex.Effect):
                         type=str,
                         dest="style", default='marks_outwards',
                         help="Style of marks")
+        self.arg_parser.add_argument("--logarithmic_ticks",
+                        type=inkex.Boolean,
+                        dest="logarithmic_ticks",
+                        default="False",
+                        help="Whether to space ticks according to a log scale.")
+        self.arg_parser.add_argument("--logarithmic_subticks",
+                        type=inkex.Boolean,
+                        dest="logarithmic_subticks",
+                        default="False",
+                        help="Whether to space ticks according to a log scale. " \
+                             "Using this without the log-scale ticks will make " \
+                             "an exponential scale.")
 
         # Label settings
         self.arg_parser.add_argument("--labels_enabled",
@@ -211,18 +223,76 @@ class Knob_Scale(inkex.Effect):
         elif self.options.style == 'marks_circles':
             self.draw_circle_mark(self.x_offset, self.y_offset, radius, mark_angle, mark_size, parent)
 
+    def get_tick_angles(self):
+        n_ticks = self.options.n_ticks
+        if n_ticks <= 0:
+            return []
+        
+        angle = radians(self.options.angle)
+        start_angle = 1.5*pi - 0.5*angle
+
+        if self.options.logarithmic_ticks:
+            tick_angles = []
+            for i in range(n_ticks):
+                tick_angle = start_angle + angle*log(i+1)/log(n_ticks)
+                tick_angles.append(tick_angle)
+            return tick_angles
+        else:
+            ticks_delta = angle / (n_ticks - 1)
+            return [start_angle + ticks_delta * i for i in range(n_ticks)]
+
+    def get_tick_labels(self):
+        start_num = self.options.start_value
+        end_num = self.options.stop_value
+        n_ticks = self.options.n_ticks
+        rounding_level = self.options.rounding_level
+        if rounding_level <= 0:
+            rounding_level = None
+
+        labels = []
+        label_delta = (end_num - start_num) / (n_ticks - 1)
+        for tick in range(n_ticks):
+            num = start_num + tick * label_delta
+            tick_text = str(round(num, rounding_level))
+            labels.append(tick_text)
+        return labels
+
+    def get_subtick_angles(self):
+        if self.options.n_ticks < 2:
+            return []
+        
+        n_ticks = self.options.n_ticks
+        n_subticks = self.options.n_subticks
+        angle = radians(self.options.angle)
+        start_angle = 1.5*pi - 0.5*angle
+        
+        subtick_angles = []
+        tick_angles = self.get_tick_angles()
+        for tick, cur_tick_angle in enumerate(tick_angles[:-1]):
+            next_tick_angle = tick_angles[tick+1]
+            tick_delta = next_tick_angle - cur_tick_angle
+            if self.options.logarithmic_ticks:
+                for i in range(n_subticks):
+                    fraction = (i+1) / (n_subticks+1) + tick
+                    fraction = log(fraction+1) / log(n_ticks)
+                    subtick_angles.append(start_angle + angle * fraction)
+            elif self.options.logarithmic_subticks:
+                for i in range(n_subticks):
+                    fraction = log(i+2) / log(n_subticks+2)
+                    subtick_angles.append(cur_tick_angle + tick_delta * fraction)
+            else: # linear
+                for i in range(n_subticks):
+                    fraction = (i + 1) / (n_subticks + 1)
+                    subtick_angles.append(cur_tick_angle + tick_delta * fraction)
+        return subtick_angles
+
     def effect(self):
 
         parent = self.svg.get_current_layer()
         radius = self.svg.unittouu(str(self.options.radius) + self.options.units)
         self.x_offset = self.svg.unittouu(str(self.options.x) + self.options.units)
         self.y_offset = self.svg.unittouu(str(self.options.y) + self.options.units)
-        #print >>sys.stderr, "x_offset: %s\n"        % x_offset
-        #print >>sys.stderr, "y_offset: %s\n"        % y_offset
-        #radius = self.options.radius
         angle = self.options.angle*pi/180.0
-        n_ticks = self.options.n_ticks
-        n_subticks = self.options.n_subticks
         is_outer = True
         if self.options.style == 'marks_inwards':
             is_outer = False
@@ -231,10 +301,7 @@ class Knob_Scale(inkex.Effect):
         subtick_length = self.svg.unittouu(str(self.options.subticksize) + self.options.units)
         arc_radius = radius
 
-
         # Labeling settings
-        start_num = self.options.start_value
-        end_num = self.options.stop_value
         text_spacing = self.svg.unittouu(str(self.options.text_offset) + self.options.units)
         text_size = self.svg.unittouu(str(self.options.text_size) + self.options.units)
 
@@ -251,34 +318,20 @@ class Knob_Scale(inkex.Effect):
         if self.options.draw_centering_circle:
             self.draw_centering_circle(arc_radius + tick_length + text_size + text_spacing, parent)
 
-        ticks_delta = angle / (n_ticks - 1)
-        start_ticks_angle = 1.5*pi - 0.5*angle
-        for tick in range(n_ticks):
-            self.draw_tick(radius, start_ticks_angle + ticks_delta*tick,
-                                tick_length, parent)
+        # Draw main ticks        
+        tick_angles = self.get_tick_angles()
+        for tick_angle in tick_angles:
+            self.draw_tick(radius, tick_angle, tick_length, parent)
 
-            if self.options.labels_enabled:
-                if self.options.rounding_level > 0:
-                    tick_text = str(round(start_num +
-                                          float(tick) * (end_num - start_num) / (n_ticks - 1),
-                                          self.options.rounding_level))
-                else:
-                    tick_text = str(int(start_num + float(tick) * (end_num - start_num) / (n_ticks - 1)))
+        # Draw subticks
+        for subtick_angle in self.get_subtick_angles():
+            self.draw_tick(subtick_radius, subtick_angle, subtick_length, parent)
 
-                self.draw_text(tick_text, radius + tick_length + text_spacing,
-                          start_ticks_angle + ticks_delta*tick,
-                          text_size,
-                          parent)
-
-            if tick == (n_ticks - 1):
-                break
-
-            subticks_delta = ticks_delta / (n_subticks + 1)
-            subtick_start_angle = start_ticks_angle + ticks_delta*tick + subticks_delta
-            for subtick in range(n_subticks):
-                self.draw_tick(subtick_radius, subtick_start_angle + subticks_delta*subtick,
-                                    subtick_length, parent)
-
+        if self.options.labels_enabled:
+            labels = self.get_tick_labels()
+            label_radius = radius + tick_length + text_spacing
+            for angle, label in zip(tick_angles, labels):
+                self.draw_text(label, label_radius, angle, text_size, parent)
 
 
 if __name__ == '__main__':
